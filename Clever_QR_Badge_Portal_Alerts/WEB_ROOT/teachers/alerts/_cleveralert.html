@@ -1,0 +1,35 @@
+<style>
+.cleverQrCode img {
+    display: block;
+    max-width:230px;
+    max-height:230px;
+    width: auto;
+    height: auto;
+}
+</style>
+
+<div id="alert-clever~(studentfrn)" class="studentAlert" style="dialogM">
+    <h1 id="a">
+    Clever Barcode for:
+    ~([Students]lastfirst)
+    </h1>
+    <center><img class="cleverQrCode" src="data:image/png;base64, ~([STUDENTS.U_Clever]Clever_QR_Barcode)" alt="Clever QR Code" /></center>
+    <!-- 
+    <table>
+        <colgroup>
+            <col>
+            <col>
+        </colgroup>
+		<tbody>
+		    
+		</tbody>
+	</table>
+	<iframe id="print" src="/admin/alerts/cleveralert.html?frn=~(studentfrn)" width="0" height="0" frameborder="0"></iframe>
+	<iframe name="print" src="/admin/alerts/cleveralert.html?frn=~(studentfrn)" width="0" height="0" frameborder="0"></iframe>
+	-->
+	<center>
+	    <a href="#btnPrint" id="btnPrint" onclick="window.print();" title="Print this page!">
+	        ~[wc:clever/printeremoji]Print this page (work in progress!)~[wc:clever/printeremoji]
+	        </a>
+	</center>
+</div>

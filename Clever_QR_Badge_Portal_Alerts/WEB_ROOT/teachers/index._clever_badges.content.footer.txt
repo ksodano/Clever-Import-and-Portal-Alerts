@@ -1,0 +1,29 @@
+<!-- Clever Footer Start -->
+<!-- Location /teachers -->
+<!-- File: index.photo_consent.content.footer.txt -->
+~[if#no.1=0]
+~[if#hasClever.~([STUDENTS.U_Clever]Clever_QR_Barcode;if.not.blank.then=1;else=0)=1]
+~[wc:alert_teacher_clever]
+[else#hasClever]
+<!-- No Clever Barcode! -->
+[/if#hasClever]
+~[if#hasClever.~([STUDENTS.U_Clever]Clever_QR_Barcode;if.not.blank.then=1;else=0)=1]
+<script>
+// alert(document.querySelector('#studentNav'))
+var checkStudentNav = setInterval(function() {
+    if(document.querySelector('#studentNav') !== null ) {
+        clearInterval(checkStudentNav);
+
+        const whereElement = document.querySelector('#studentNav')
+        var CleverAlert = document.querySelector("#CleverAlert")
+        if ( CleverAlert != null ) {
+            whereElement.appendChild(CleverAlert)
+        }
+    }
+}, 100);
+</script>
+[else#hasClever]
+<!-- No Clever Barcode for redirect! -->
+[/if#hasClever]
+<!-- Clever Footer End -->
+[/if#no]

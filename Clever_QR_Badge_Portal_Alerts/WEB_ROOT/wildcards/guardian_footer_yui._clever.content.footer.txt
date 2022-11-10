@@ -1,0 +1,26 @@
+<!-- 
+Directory: /wildcards
+Filename: guardian_footer_yui._clever.content.footer.txt
+-->
+
+~[if#distCheck.district.office]
+    ~[if#ParentsOn.~[displaypref:Clever_District_Parents]=1]
+        ~[if#hasClever.~([STUDENTS.U_Clever]Clever_QR_Barcode;if.not.blank.then=1;else=0)=1]
+            ~[wc:alert_guardian_clever]
+        [/if#hasClever]
+    [/if#ParentsOn]
+[else#distCheck]
+    ~[if#Can_Override_Parents.~[displaypref:Clever_School_Can_Override_Show_Parent_Badge-S~(curschoolid)]=1]
+                ~[if#SchoolOn.~[displaypref:Clever_School_Override_Show_Parent-S~(curschoolid)]=1]
+				    ~[if#hasClever.~([STUDENTS.U_Clever]Clever_QR_Barcode;if.not.blank.then=1;else=0)=1]
+                        ~[wc:alert_guardian_clever]
+                    [/if#hasClever]                    
+                [/if#SchoolOn]
+	[else#Can_Override_Parents]
+				~[if#ParentsOn.~[displaypref:Clever_District_Parents]=1]
+				    ~[if#hasClever.~([STUDENTS.U_Clever]Clever_QR_Barcode;if.not.blank.then=1;else=0)=1]
+                        ~[wc:alert_guardian_clever]
+                    [/if#hasClever]
+				[/if#ParentsOn]
+    [/if#Can_Override_Parents]
+[/if#distCheck]

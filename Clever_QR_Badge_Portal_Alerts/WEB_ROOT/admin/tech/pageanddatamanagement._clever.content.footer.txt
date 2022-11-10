@@ -1,0 +1,7 @@
+
+<script>
+    $j(document).ready(function(){
+        $j($j($j("h2:contains('Page Management')").next()).find("tbody")).append("<tr><td><a href='/admin/clever/preferences.html'>Clever Preferences</a></td><td>Setup Clever Badge Display Preferences. (Admin, Teacher, Parent Portal)</td></tr>")
+        $j($j($j("h2:contains('Page Management')").next()).find("tbody")).append("<tr><td><a href='/admin/clever/import.html'>Clever Import</a></td><td>Import tool for Clever Badges via PowerSchool.</td></tr>")
+    })
+</script>

@@ -1,0 +1,321 @@
+<!--
+TemplateName:Admin
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Clever Import</title>
+
+	<!-- required scripts -->
+
+	<script src="jszip3.1.5.min.js"></script>
+
+	~[wc:commonscripts]
+
+	<!-- Required style sheets: screen.css, and print.css --> 
+	<link href="/images/css/screen.css" rel="stylesheet" media="screen">
+	<link href="/images/css/print.css" rel="stylesheet" media="print">
+</head>
+<body> 
+	~[wc:admin_header_css] 
+    <!-- breadcrumb start -->
+    <a href="/admin/home.html" target="_top">Start Page</a> &gt;
+    <a href="/admin/tech/home.html">System Administrator</a> &gt;
+    <a href="/admin/tech/pageanddatamanagement.html">Page and Data Management</a> &gt;
+    Clever Import
+    <!-- breadcrumb end --> 
+<!-- start of main menu and content --> 
+	~[wc:admin_navigation_css] 
+<!-- Start of Page --> 
+	<h1>Clever Badge Import</h1> 
+<!-- start of content area --> 
+	<div class="box-round"> 
+		<h2>Clever Badge Import / Update</h2>
+		~[if.~(gpv.changesSaved)=true]<div class="feedback-confirm">~[text:psx.common.changes_recorded]</div>[/if]
+<form action="/~[self.page]?changesSaved=true" method="POST">
+<p>Clever SIS ID <!-- (~[displaypref:CleverSISID])-->is defined as: <select id="CleverSISID" value="~[displaypref:CleverSISID]" name="[Pref]CleverSISID">
+    <option value="">Not (yet) Defined.</option>
+    <option value="1">[Students]ID</option>
+    <option value="2">[Students]DCID</option>
+    <!-- <option value="X">...</option> -->
+    </select></p>
+
+<div class="button-row" class="hidden"><input type="hidden" name="ac" value="prim"/>~(updatebutton=Fnord)</div>
+</form>
+        <p class="note">Note(s):<blockquote>Files are processed in-browser with Javascript.<br/>Too large of a file may cause the process to hang!<br>This version only updates 500 badges at one go! Re-process the file again to do the next 500 badges!</blockquote></p>
+        <table id="load_data" class="hidden">
+            <tr>
+                <th>
+                    DCID
+                </th>
+                <th>
+                    Badge
+                </th>
+            </tr>
+~[tlist_sql;
+SELECT CASE WHEN ~[displaypref:CleverSISID] = 1 THEN students.id
+WHEN ~[displaypref:CleverSISID] = 2 THEN students.dcid 
+ELSE students.id END as clever_id
+, students.dcid as dcid
+, students.dcid as dcid2
+, U_Clever.CLEVER_QR_BARCODE as Badge
+  FROM Students
+    FULL OUTER JOIN U_Clever
+      ON students.dcid = U_Clever.studentsdcid
+        WHERE students.enroll_status=0
+;alternatecolor;nonemessage={none_message}]
+            <tr id="~(clever_id)">
+                <td>
+                    ~(dcid)
+                </td>
+                <td>
+                    <input type="text" name="EF-001~(dcid2)-U_Clever.Clever_QR_Barcode" value="~(Badge)" size="60" data-key="students.u_clever.clever_qr_barcode" />
+                </td>
+            </tr>
+[/tlist_sql]
+        </table>
+        <form name="Clever Badge Import" action="/~[self.page]?changesSaved=true" method="POST">
+            <table id="save_data" class="hidden">
+                <tr>
+                    <th>
+                        DCID
+                    </th>
+                    <th>
+                        Badge
+                    </th>
+                </tr>
+            </table>
+            <div class="button-row">
+            <a class="button hidden" href='/~[self.page]' id='reset' name='reset'>Discard Changes</a>
+            <input type="file" id="file" name="file" multiple />
+            <input type="hidden" name="ac" value="prim">
+            ~[submitbutton]</div>
+        </form>
+        <div id="result_block" class="hidden">
+        <h3>Content :</h3>
+        <div id="result"></div>
+        </div>
+    </div> 
+<!-- end of content area --> 
+	~[wc:admin_footer_css] 
+
+<script type="text/javascript">
+/****************
+ * console.logCopy = console.log.bind(console);
+ * console.log = function() {
+ *   if (arguments.length) {
+ *       var timestamp = '[' + Date.now() + '] ';
+ *       this.logCopy(timestamp, arguments);
+ *   }
+ * };
+ * 
+ * Console Logging with Timestamps...
+ * ***********************/
+
+var $result = $j("#result");
+var counts = {
+    errors : 0,
+    updates : 0,
+    matches : 0,
+    total : 0
+}
+var summary = "";
+var any_updates = false;
+const id_pattern = /\d+/
+var dateBefore;
+var isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
+
+if (isIE11) {
+    alert("IE 11 is not tested. Please use another browser!");
+    alert("No, really, why are you using IE 11?")
+}
+
+async function process_zipItem(zipEntry,myResult) {
+	var zip_full_filename = zipEntry.name;
+	// This following method is apparently the "fastest" way to the last path part of a filename
+	var zip_filename = zip_full_filename.split('\\').pop().split('/').pop();
+	var id_result = id_pattern.exec(zip_filename)[0];
+	var id_handle = null;
+	await zipEntry.async("base64")
+    	.then( function (data) {
+		id_handle=$j('#'+id_result+' input')
+		if (id_handle.length) {
+		    // console.log(data)
+		    // console.log(id_handle.val())
+			if (data == id_handle.val()) {
+				counts.matches++
+               
+				// Since I split the table between "Loaded" data and "Saving", 
+				// I don't want to delete matches now.
+               
+				// $j('#'+id_result).remove()
+               
+			} else { 
+               
+				// Value didn't match, we likely want to update...
+
+				// We're moving this to the part of the page where it will save...
+                if (counts.updates <= 500) {
+				$j('table#save_data').append(
+				   
+				   // And removing (detaching) it from the load section...
+				   $j('table#load_data tr#'+id_result).detach()
+				   
+				)
+                
+				id_handle.val(data)
+				}
+
+				counts.updates++
+				if(!any_updates) {
+				   any_updates = true;
+				}
+
+			}
+		} else {
+			// Your Badge file has an ID for an inactive student.  Is it a stale badge file?
+			counts.errors ++
+			myResult.append(
+			   $j("<li>", {
+			       text : "Bad ID: " + id_result + ".  " + "Filename: " + zip_filename + ".  "
+			   }) // $j("<Li>")
+			); // .prepend()
+		}
+		counts.total++;
+		summary = "Total of..." + "Errors: " + counts.errors + ".  " + 
+		           "Matches: " + counts.matches + ".  " + 
+		           "Updates: " + counts.updates + ".  " + 
+		           "Items: " + counts.total +".";
+		if (counts.updates > 500) {
+		     summary += "More than 500 records were found. The first 500 in your file were updated, but the rest were skipped. Please re-process the same file again to upload the next 500 records.</b>"
+		}
+		//console.log(summary);
+		$j('ul.counters').remove()
+		myResult.parent().parent().prepend($j("<ul>", {
+		   text : summary 
+		}).addClass('counters'));
+		$j('ul.counters').slice(1).remove()
+		
+        return Promise.resolve(zipEntry.name)
+    }).finally(function(){
+    });
+    //}); //zip.forEach
+} // process_zipItem
+
+// Closure to capture the file information.
+async function handleFile(f) {
+    var $title = $j("<h4>", {
+        text : f.name,
+        title : f.name
+    }); // var $title
+    var $fileContent = $j("<ul name='fileContent'>");
+    $result.append($title);
+    $result.append($fileContent);
+	var zip_list = [];
+    // require(['/admin/clever/jszip3.1.5.min.js'], function (JSZip) {
+    await JSZip.loadAsync(f)                                   // 1) read the Blob
+        .then(async function(zip) {
+            // zip.forEach(async function (relativePath, zipEntry) {  // 2) print entries
+            await zip.forEach(async function(relativepath, zipEntry) {
+                var process = false;
+                var zip_full_filename = zipEntry.name
+                // This following method is apparently the "fastest" way to the last path part of a filename
+                var zip_filename = zip_full_filename.split('\\').pop().split('/').pop() 
+                
+                if (isIE11) {
+                        process = zip_filename.match(/\.png$/) && zip_full_filename.includes('by_grade')
+                        // Not really tested on IE11! Dear Zod Why?
+                    } else {
+                        process = zip_filename.endsWith('.png') && zip_full_filename.includes('by_grade')
+                    }
+                if (process) {
+                    zip_list.push(zipEntry);
+                    return Promise.resolve("Pushed: "+zipEntry);
+                } else { // process
+                    return Promise.resolve("Not Pushed: "+zipEntry)
+                }
+            })
+            return Promise.resolve(zip_list);
+        }).then(async function(zl){
+            var zip_actions = zip_list.map(zipEntry => process_zipItem(zipEntry,$title))
+            var zip_results = Promise.all(zip_actions)
+            await zip_results.then(function(){
+                var dateAfter = new Date();
+                $title.prepend($j("<span>", {
+                    "class": "small",
+                    text: " (loaded in " + (dateAfter - dateBefore) + "ms)"
+                    }));
+                return Promise.resolve("File: "+f.name+" loaded in: "+(dateAfter - dateBefore)+"ms.")
+                })
+        }).catch(function(e) { // Close then...
+            $result.append($j("<div>", {
+                "class" : "alert alert-danger",
+                text : "Error reading " + f.name + ": " + e.message
+            })); // $result.append
+            return Promise.resolve("Error reading: "+f.name+": "+e.message)
+            // Until we get Promises.allSettled, this line above has to be a resolve.
+        }).finally(function(){
+        })
+        return Promise.resolve("Outside f.name="+f.name)
+} // handleFile
+
+$j(document).ready(function(){
+    // By default the page has nothing to submit...
+    let BulkSubmit = $j('#btnSubmit')  
+    BulkSubmit.attr("disabled", true);
+    BulkSubmit.attr('title','Please upload a file to begin...')
+
+    $j("#file").on("change", function(evt) {
+        // remove content
+        $result.html("");
+        counts.errors=0;
+        counts.updates=0;
+        counts.matches=0;
+        counts.total=0;
+        any_updates = false;
+        summary = "";
+        $j('div.feedback-confirm').remove();
+        dateBefore = new Date();
+        BulkSubmit.attr('title','Please wait until the file is fully loaded...');
+        BulkSubmit.attr("disabled", true);
+
+        // be sure to show the results
+        $j("#result_block").removeClass("hidden").addClass("show");
+    
+        var files = evt.target.files;
+        var files_list = []
+        for (var i = 0; i < files.length; i++) {
+            files_list.push(files[i])
+        }
+
+        // Async
+        console.log("files_list:",files_list)
+        var actions = files_list.map(thisfile => handleFile(thisfile))
+        var results = Promise.all(actions)
+        results.then(data => // or just .then(console.log)
+            console.log("Then: ("+length(data)+") "+data) // Results of the Promises...
+        ).finally(function(){
+            console.log(any_updates);
+            console.log(counts);
+            if (any_updates) {
+                BulkSubmit.attr("disabled", false);
+                BulkSubmit.attr('title','Submit to commit updated QR Codes...')
+                $j('#file').attr('disabled',true);
+                $j('#file').attr('title','Reload the page to discard your updated QR Codes!')
+                $j('#reset').removeClass('hidden')
+            } else {
+                BulkSubmit.attr('title','No valid QR codes to update!');
+            }   
+        })
+    });  //on(change) event
+}); // document.ready()
+</script>
+<script>
+    $j(function() {
+        $j('#CleverSISID').change(function() {
+            this.form.submit();
+        });
+    });
+</script>
+</body> 
+</html>

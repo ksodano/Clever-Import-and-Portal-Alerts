@@ -1,0 +1,158 @@
+<form action="/admin/changesrecorded.white.html" method="POST" class=''>
+	<!--content-->
+~[if#distCheck.district.office]
+<table class="linkDescList">
+	<thead>
+		<tr>
+			<th width='50%'>District Help URL</th>
+			<th>Show/Hide Admin Badge</th>
+			<th>Show/Hide Teacher Badge</th>
+			<th>Show/Hide Parent Badge</th>
+		</tr>
+	</thead>
+	<tbody>
+        <tr>
+            <td>
+                <input type='text'     name='[pref]Clever_District_Help' maxlength='200' value=''>
+            </td>
+            <td>
+                <input type="checkbox" class="radioSlider" id='Clever_District_Admin' name="[pref]Clever_District_Admin" value="1">
+            </td>
+            <td>
+                <input type="checkbox" class="radioSlider" id='Clever_District_Teachers' name="[pref]Clever_District_Teachers" value="1">
+            </td>
+            <td>
+                <input type="checkbox" class="radioSlider" id='Clever_District_Parents' name="[pref]Clever_District_Parents" value="1">
+            </td>
+        </tr>
+	</tbody>
+</table>
+<table class="linkDescList">
+	<thead>
+		<tr>
+			<th>Abbreviation</th>
+			<th>School Number</th>
+			<th>Can Override District Help URL?</th>
+			<th>School Help URL?</th>
+			<th>Can Override District Show/Hide Badge? (Admin)</th>
+			<th>School Show/Hide Badge? (Admin)</th>
+			<th>Can Override District Show/Hide Badge? (Teacher)</th>
+			<th>School Show/Hide Badge? (Teacher)</th>
+			<th>Can Override District Show/Hide Badge? (Parent)</th>
+			<th>School Show/Hide Badge? (Parent)</th>
+		</tr>
+	</thead>
+	<tbody>
+~[tlist_sql;
+SELECT abbreviation as Abbr
+, school_number as SchNo
+, school_number as Over_Help
+, school_number as Over_Help_id
+, school_number as School_Help
+, school_number as Over_Show_Badge_Admin
+, school_number as Over_Show_Badge_Admin_id
+, school_number as School_Badge_Admin
+, school_number as School_Badge_Admin_id
+, school_number as Over_Show_Badge_Teacher
+, school_number as Over_Show_Badge_Teacher_id
+, school_number as School_Badge_Teacher
+, school_number as School_Badge_Teacher_id
+, school_number as Over_Show_Badge_Parent
+, school_number as Over_Show_Badge_Parent_id
+, school_number as School_Show_Badge_Parent
+, school_number as School_Show_Badge_Parent_id
+FROM schools
+WHERE school_number != 999999
+ORDER BY sortorder
+;alternatecolor;nonemessage=Something Broke. Please talk to your PowerSchool Guru...]
+			<tr>
+				<td>
+				    ~(abbr)
+				</td>
+				<td>
+				    ~(SchNo)
+				</td>
+				<td>
+				    <input type="checkbox" class="radioSlider" name="[pref]Clever_School_Can_Override_Help-S~(Over_Help)" 
+				    id='Over_Help-S~(Over_Help_id)' value="1">
+				</td>
+				<td width='50%'>
+				    <input type="text"     name="[pref]Clever_School_Help-S~(School_Help)" value="">
+				</td>
+				<td>
+				    <input type="checkbox" class="radioSlider" name="[pref]Clever_School_Can_Override_Show_Admin_Badge-S~(Over_Show_Badge_Admin)"
+				    id='Over_Admin-S~(Over_Show_Badge_Admin_id)' value="1">
+				</td>
+                <td>
+                    <input type="checkbox" class="radioSlider" name="[pref]Clever_School_Override_Show_Admin-S~(School_Badge_Admin)"
+                    id='School_Admin-S~(School_Badge_Admin_id)' value="1">
+                </td>
+                <td>
+                    <input type="checkbox" class="radioSlider" name="[pref]Clever_School_Can_Override_Show_Teacher_Badge-S~(Over_Show_Badge_Teacher)"
+                    id='Over_Teacher-S~(Over_Show_Badge_Teacher_id)' value="1">
+                </td>
+                <td>
+                    <input type="checkbox" class="radioSlider" name="[pref]Clever_School_Override_Show_Teacher-S~(School_Badge_Teacher)"
+                    id='School_Teacher-S~(School_Badge_Teacher_id)' value="1">
+                </td>
+                <td>
+                    <input type="checkbox" class="radioSlider" name="[pref]Clever_School_Can_Override_Show_Parent_Badge-S~(Over_Show_Badge_Parent)"
+                    id='Over_Parent-S~(Over_Show_Badge_Parent_id)' value="1">
+                </td>
+                <td>
+                    <input type="checkbox" class="radioSlider" name="[pref]Clever_School_Override_Show_Parent-S~(School_Show_Badge_Parent)"
+                    id='School_Parent-S~(School_Show_Badge_Parent_id)' value="1">
+                </td>
+			</tr>
+		[/tlist_sql]
+	</tbody>
+</table>
+[else#distCheck]
+<table class="linkDescList">
+	<thead>
+		<tr>
+			<th width='50%'>School/District Help URL</th>
+			<th>Show/Hide Admin Badge</th>
+			<th>Show/Hide Teacher Badge</th>
+			<th>Show/Hide Parent Badge</th>
+		</tr>
+	</thead>
+	<tbody>
+
+			<tr>
+				<td>~[if#Can_Override_Help.~[displaypref:Clever_School_Can_Override_Help-S~(curschoolid)]=1]
+				<input type="text"     name="[pref]Clever_School_Help-S~(curschoolid)" id='Clever_School_Help-S~(curschoolid)' value="">
+				[else#Can_Override_Help]
+				District: <a href='~[displaypref:Clever_District_Help]'>~[displaypref:Clever_District_Help]</a>
+				[/if#Can_Override_Help]</td>
+				<td>~[if#Can_Override_Admin.~[displaypref:Clever_School_Can_Override_Show_Admin_Badge-S~(curschoolid)]=1]
+				<input type="checkbox" class="radioSlider" name="[pref]Clever_School_Override_Show_Admin-S~(curschoolid)"
+				id='Clever_School_Override_Show_Admin-S~(curschoolid)' value="1">
+				[else#Can_Override_Admin]
+				~[if#toggleOn.~[displaypref:Clever_District_Admin]=1]District: <img src="/admin/clever/Clever-ToggleOn.png" title="On"/>
+				[else#toggleOn]District: <img src="/admin/clever/Clever-ToggleOff.png" title="Off"/>
+				[/if#toggleOn]
+				[/if#Can_Override_Admin]</td>
+				<td>~[if#Can_Override_Teachers.~[displaypref:Clever_School_Can_Override_Show_Teacher_Badge-S~(curschoolid)]=1]
+				<input type="checkbox" class="radioSlider" name="[pref]Clever_School_Override_Show_Teacher-S~(curschoolid)"
+				id='Clever_School_Override_Show_Teacher-S~(curschoolid)' value="1">
+				[else#Can_Override_Teachers]
+				~[if#toggleOn.~[displaypref:Clever_District_Teachers]=1]District: <img src="/admin/clever/Clever-ToggleOn.png" title="On"/>
+				[else#toggleOn]District: <img src="/admin/clever/Clever-ToggleOff.png" title="Off"/>
+				[/if#toggleOn]
+				[/if#Can_Override_Teachers]</td>
+				<td>~[if#Can_Override_Parents.~[displaypref:Clever_School_Can_Override_Show_Parent_Badge-S~(curschoolid)]=1]
+				<input type="checkbox" class="radioSlider" name="[pref]Clever_School_Override_Show_Parent-S~(curschoolid)"
+				id='Clever_School_Override_Show_Parent-S~(curschoolid)' value="1">
+				[else#Can_Override_Parents]
+				~[if#toggleOn.~[displaypref:Clever_District_Parents]=1]District: <img src="/admin/clever/Clever-ToggleOn.png" title="On"/>
+				[else#toggleOn]District: <img src="/admin/clever/Clever-ToggleOff.png" title="Off"/>
+				[/if#toggleOn]
+				[/if#Can_Override_Parents]</td>
+			</tr>
+	</tbody>
+</table>
+
+[/if#distCheck]
+	<div class="button-row"> <input type="hidden" name="ac" value="prim">~[submitbutton] </div>
+</form>
